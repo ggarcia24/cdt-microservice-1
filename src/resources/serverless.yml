@@ -1,0 +1,38 @@
+service: cdt-microservice-1-resources
+
+frameworkVersion: "2"
+configValidationMode: "error"
+variablesResolutionMode: 20210326
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  lambdaHashingVersion: 20201221
+  stage: dev
+  region: us-east-1
+
+custom:
+  serviceExportPrefix: producer1-${self:provider.stage}
+
+resources:
+  Resources:
+    ProducerTopic:
+      Type: AWS::SNS::Topic
+      Properties:
+        TopicName: cdt-producer1-topic.fifo
+        DisplayName: Producer 1 Topic
+        ContentBasedDeduplication: true
+        FifoTopic: true
+  Outputs:
+    Producer1TopicArn:
+      Description: Producer 1 Topic ARN
+      Value:
+        Ref: ProducerTopic
+      Export:
+        Name: ${self:custom.serviceExportPrefix}-TopicArn
+    Producer1TopicName:
+      Description: Producer 1 Topic Name
+      Value:
+        Fn::GetAtt: [ProducerTopic, TopicName]
+      Export:
+        Name: ${self:custom.serviceExportPrefix}-TopicName

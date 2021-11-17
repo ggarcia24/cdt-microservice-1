@@ -1,0 +1,40 @@
+app: cdt-microservice-1
+service: cdt-microservice-1-api
+
+frameworkVersion: "2"
+useDotenv: true
+configValidationMode: error
+variablesResolutionMode: 20210326
+unresolvedVariablesNotificationMode: error
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  lambdaHashingVersion: 20201221
+  stage: dev
+  region: us-east-1
+  memorySize: 256
+  versionFunctions: false
+  logRetentionInDays: 14
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - sns:Publish
+          Resource:
+            - ${self:custom.topicArn}
+custom:
+  serviceExportPrefix: producer1-${self:provider.stage}
+  topicArn:
+    Fn::ImportValue: ${self:custom.serviceExportPrefix}-TopicArn
+
+functions:
+  hello:
+    handler: handler.hello
+    environment:
+      TOPIC_ARN: ${self:custom.topicArn}
+    events:
+      - httpApi:
+          method: POST
+          path: /service-1
